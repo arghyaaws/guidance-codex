@@ -15,7 +15,7 @@
         "MYSQL_ER_SECRET_ARN": "arn:aws:secretsmanager:us-west-2:123456789012:secret:readonly-secret",
         "AWS_PROFILE": "your-dev-profile",
         "AWS_REGION": "us-west-2",
-        "MYSQL_ER_SSL_CA": "<PROJECT_ROOT>/mcp/mysql-er-diagram/us-west-2-bundle.pem"
+        "MYSQL_ER_SSL_CA": "<PROJECT_ROOT>/mcp/mysql-er-diagram/global-bundle.pem"
       }
     }
   }
