@@ -284,14 +284,23 @@ project.
 missing so Aurora/MySQL connections always use certificate and hostname
 verification.
 
+The CA bundle is **region-specific**. This repo ships `us-west-2-bundle.pem`
+and `us-east-2-bundle.pem`; set `MYSQL_ER_SSL_CA` to the one that matches your
+database region. If your database lives in a region without a bundled `.pem`,
+add that region's bundle (see
+[Using a different region](#using-a-different-region)). A mismatched bundle
+fails hostname verification and the connection is refused.
+
 If you choose to use a local secret file instead of Secrets Manager, keep it
 outside version control. The repo `.gitignore` excludes common secret-file
 patterns, but the safer default is to use `MYSQL_ER_SECRET_ARN`.
 
-## What The `us-west-2-bundle.pem` File Is For
+## What The `*-bundle.pem` Files Are For
 
-`mcp/mysql-er-diagram/us-west-2-bundle.pem` is the AWS RDS regional CA bundle.
-It is used by the local MCP server when it opens a TLS connection to Aurora.
+`mcp/mysql-er-diagram/us-west-2-bundle.pem` and
+`mcp/mysql-er-diagram/us-east-2-bundle.pem` are the AWS RDS regional CA bundles.
+One of them is used by the local MCP server when it opens a TLS connection to
+Aurora — pick the bundle matching your database's region.
 
 Why it matters:
 
@@ -305,6 +314,26 @@ verification are both enabled.
 
 Without it, the connection may fail TLS verification, or you would be tempted
 to disable certificate checks, which is not what we want.
+
+### Using a different region
+
+This repo bundles `us-west-2-bundle.pem` and `us-east-2-bundle.pem`; each only
+verifies RDS/Aurora endpoints in its own region. Because hostname verification
+is enabled, a bundle from the wrong region is rejected. For a region without a
+bundled `.pem`, download that region's RDS CA bundle, save it next to the
+shipped ones, and point `MYSQL_ER_SSL_CA` at it. Example for `eu-west-1`:
+
+```sh
+curl -fsS -o mcp/mysql-er-diagram/eu-west-1-bundle.pem \
+  https://truststore.pki.rds.amazonaws.com/eu-west-1/eu-west-1-bundle.pem
+export MYSQL_ER_SSL_CA="$(pwd)/mcp/mysql-er-diagram/eu-west-1-bundle.pem"
+```
+
+Also set `AWS_REGION` (and `AWS_REGION_NAME` when deploying the test stack) to
+that region so the endpoint, the `MYSQL_ER_SECRET_ARN`, and the CA bundle all
+match. The global bundle
+(`https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem`) works
+across regions if you prefer a single file.
 
 ## Security Posture
 
